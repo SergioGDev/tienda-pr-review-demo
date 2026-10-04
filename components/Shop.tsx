@@ -1,19 +1,20 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
+import { useCart } from "@/components/CartProvider";
 import {
   calculateDiscount,
   calculateSubtotal,
   calculateTotal,
   findCoupon,
   formatEuros,
-  type CartItem,
   type Coupon,
 } from "@/lib/pricing";
 import { products, type Product } from "@/lib/products";
 
 export default function Shop() {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const { items, setItems } = useCart();
   const [coupon, setCoupon] = useState<Coupon | null>(null);
   const [couponInput, setCouponInput] = useState<string>("");
   const [couponError, setCouponError] = useState<boolean>(false);
@@ -72,9 +73,13 @@ export default function Shop() {
             key={product.id}
             className="overflow-hidden rounded-lg border border-black/10 dark:border-white/15"
           >
-            <div className={`aspect-square ${product.image}`} />
+            <Link href={`/producto/${product.id}`}>
+              <div className={`aspect-square ${product.image}`} />
+            </Link>
             <div className="p-4">
-              <h2 className="font-medium">{product.name}</h2>
+              <h2 className="font-medium">
+                <Link href={`/producto/${product.id}`}>{product.name}</Link>
+              </h2>
               <p className="text-zinc-600 dark:text-zinc-400">
                 {formatEuros(product.price)}
               </p>
