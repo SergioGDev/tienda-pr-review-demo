@@ -12,6 +12,8 @@ import {
 } from "@/lib/pricing";
 import { products, type Product } from "@/lib/products";
 
+const SHIPPING_COST: number = 4.95;
+
 export default function Shop() {
   const [items, setItems] = useState<CartItem[]>([]);
   const [coupon, setCoupon] = useState<Coupon | null>(null);
@@ -63,6 +65,9 @@ export default function Shop() {
 
   const subtotal: number = calculateSubtotal(items);
   const discount: number = calculateDiscount(subtotal, coupon);
+  const shipping: number = coupon?.code === "ENVIOGRATIS" ? 0 : SHIPPING_COST;
+  const total: number =
+    Math.round((calculateTotal(items, coupon) + shipping) * 100) / 100;
 
   return (
     <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
@@ -178,9 +183,13 @@ export default function Shop() {
                   <dd>{formatEuros(-discount)}</dd>
                 </div>
               )}
+              <div className="flex justify-between">
+                <dt>Envío</dt>
+                <dd>{formatEuros(shipping)}</dd>
+              </div>
               <div className="flex justify-between font-semibold">
                 <dt>Total</dt>
-                <dd>{formatEuros(calculateTotal(items, coupon))}</dd>
+                <dd>{formatEuros(total)}</dd>
               </div>
             </dl>
           </div>
