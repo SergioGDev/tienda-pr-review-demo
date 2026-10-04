@@ -10,19 +10,20 @@ import {
   type CartItem,
   type Coupon,
 } from "@/lib/pricing";
+import CartRow from "@/components/CartRow";
 import { products, type Product } from "@/lib/products";
 
 export default function Shop() {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [coupon, setCoupon] = useState<Coupon | null>(null);
   const [couponInput, setCouponInput] = useState<string>("");
   const [couponError, setCouponError] = useState<boolean>(false);
 
   function addToCart(product: Product): void {
-    setItems((current) => {
-      const exists = current.some((item) => item.product.id === product.id);
-      if (!exists) return [...current, { product, quantity: 1 }];
-      return current.map((item) =>
+    setCartItems((previousItems) => {
+      const exists = previousItems.some((item) => item.product.id === product.id);
+      if (!exists) return [...previousItems, { product, quantity: 1 }];
+      return previousItems.map((item) =>
         item.product.id === product.id
           ? { ...item, quantity: item.quantity + 1 }
           : item,
@@ -31,8 +32,8 @@ export default function Shop() {
   }
 
   function changeQuantity(productId: string, delta: number): void {
-    setItems((current) =>
-      current
+    setCartItems((previousItems) =>
+      previousItems
         .map((item) =>
           item.product.id === productId
             ? { ...item, quantity: item.quantity + delta }
@@ -43,16 +44,16 @@ export default function Shop() {
   }
 
   function removeFromCart(productId: string): void {
-    setItems((current) => current.filter((item) => item.product.id !== productId));
+    setCartItems((previousItems) => previousItems.filter((item) => item.product.id !== productId));
   }
 
   function applyCoupon(): void {
-    const found = findCoupon(couponInput);
-    if (!found) {
+    const matchedCoupon = findCoupon(couponInput);
+    if (!matchedCoupon) {
       setCouponError(true);
       return;
     }
-    setCoupon(found);
+    setCoupon(matchedCoupon);
     setCouponError(false);
     setCouponInput("");
   }
@@ -61,7 +62,7 @@ export default function Shop() {
     setCoupon(null);
   }
 
-  const subtotal: number = calculateSubtotal(items);
+  const subtotal: number = calculateSubtotal(cartItems);
   const discount: number = calculateDiscount(subtotal, coupon);
 
   return (
@@ -92,47 +93,21 @@ export default function Shop() {
 
       <aside className="rounded-lg border border-black/10 p-4 lg:sticky lg:top-6 lg:w-80 dark:border-white/15">
         <h2 className="mb-4 text-xl font-semibold">Carrito</h2>
-        {items.length === 0 ? (
+        {cartItems.length === 0 ? (
           <p className="text-zinc-600 dark:text-zinc-400">Tu carrito está vacío</p>
         ) : (
           <ul className="flex flex-col gap-4">
-            {items.map(({ product, quantity }) => (
-              <li key={product.id} className="flex flex-col gap-2">
-                <div className="flex justify-between gap-2">
-                  <span className="font-medium">{product.name}</span>
-                  <span>{formatEuros(product.price)}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    aria-label={`Quitar una unidad de ${product.name}`}
-                    onClick={() => changeQuantity(product.id, -1)}
-                    className="h-8 w-8 rounded border border-black/20 dark:border-white/25"
-                  >
-                    −
-                  </button>
-                  <span className="w-6 text-center">{quantity}</span>
-                  <button
-                    type="button"
-                    aria-label={`Añadir una unidad de ${product.name}`}
-                    onClick={() => changeQuantity(product.id, 1)}
-                    className="h-8 w-8 rounded border border-black/20 dark:border-white/25"
-                  >
-                    +
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => removeFromCart(product.id)}
-                    className="ml-auto text-sm underline"
-                  >
-                    Quitar
-                  </button>
-                </div>
-              </li>
+            {cartItems.map((item) => (
+              <CartRow
+                key={item.product.id}
+                item={item}
+                onChangeQuantity={changeQuantity}
+                onRemove={removeFromCart}
+              />
             ))}
           </ul>
         )}
-        {items.length > 0 && (
+        {cartItems.length > 0 && (
           <div className="mt-4 flex flex-col gap-4 border-t border-black/10 pt-4 dark:border-white/15">
             <div>
               <div className="flex gap-2">
@@ -180,7 +155,7 @@ export default function Shop() {
               )}
               <div className="flex justify-between font-semibold">
                 <dt>Total</dt>
-                <dd>{formatEuros(calculateTotal(items, coupon))}</dd>
+                <dd>{formatEuros(calculateTotal(cartItems, coupon))}</dd>
               </div>
             </dl>
           </div>
