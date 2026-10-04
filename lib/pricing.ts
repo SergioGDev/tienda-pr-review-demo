@@ -22,7 +22,10 @@ export function calculateSubtotal(items: CartItem[]): number {
 
 export type Coupon = { code: string; percent: number };
 
-export const COUPONS: Coupon[] = [{ code: "BIENVENIDO10", percent: 10 }];
+export const COUPONS: Coupon[] = [
+  { code: "BIENVENIDO10", percent: 10 },
+  { code: "ENVIOGRATIS", percent: 0 },
+];
 
 export function findCoupon(code: string): Coupon | undefined {
   const normalized = code.trim().toUpperCase();
